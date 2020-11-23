@@ -5,7 +5,7 @@
 
 DS1820 ds1820(D2); // OK
 Serial pc(USBTX, USBRX); //  OK
-//Serial sigfox(D1,D0); // pas OK
+Serial sigfox(D1,D0); // pas OK
 static DavisAnemometer anemometer(A1 /* wind direction */, D6 /* wind speed */); // OK
 DHT dht22(D3, DHT22); // pas OK
 
@@ -20,10 +20,11 @@ int main(){
     pc.printf("\r\n--Commencer--\r\n");
     //sigfox.printf("ESSAI");
     while(1){
+        //ThisThread::sleep_for(2000);
         erreur = dht22.readData(); 
             
         if(!(ds1820.begin() && erreur == 0)){
-            printf("ERREUR DS1820 ou DHT22");
+            printf("ERREUR DS1820 ou DHT22\r\n");
         }
         ds1820.startConversion();
         //wait(10);
@@ -33,7 +34,7 @@ int main(){
         switch (resultat) {
                   case 0:                 // pas d'erreur -> 'temp' comporte valeur de temperature
                       pc.printf("tempSonde = %3.1f%cC ,tempDHT22: %f%cC , humidite: %f \r\n", temp, 176,tempDHT22,176,humidite);
-                     // sigfox.printf("AT$SF=%02x%02x%02x\r\n",c,h,(int)temp); //envoyer le message a backend sigfox
+                     // sigfox.printf("AT$SF=%02x%02x%02x\r\n",tempDHT22,humidite,(int)temp); //envoyer le message a backend sigfox
 
                     break;
   
@@ -49,14 +50,17 @@ int main(){
         
         
         if(anemometer.readWindDirection() <=309 && anemometer.readWindDirection() >=306){
-                printf("La direction est Nord\r\n [speed] %.2f km/h\r\n",anemometer.readWindSpeed());          
+                printf("La direction est Nord\r\n [speed] %.2f km/h\r\n",anemometer.readWindSpeed());    
+
             }
         else if(anemometer.readWindDirection() <=328 && anemometer.readWindDirection() >=326){
                 printf("La direction est Sud\r\n [speed] %.2f km/h\r\n",anemometer.readWindSpeed()); 
+               
             }
         else if(anemometer.readWindDirection() <=295 && anemometer.readWindDirection() >=291){
             
                 printf("La direction est Ouest\r\n [speed] %.2f km/h\r\n",anemometer.readWindSpeed()); 
+                
             }
             
          else if(anemometer.readWindDirection() <=324 && anemometer.readWindDirection() >=321){
@@ -81,6 +85,7 @@ int main(){
                 printf("La direction est Nord-Est\r\n [speed] %.2f km/h\r\n",anemometer.readWindSpeed()); 
             }
             
+        sigfox.printf("AT$SF=%02x%02x%02x%02x\r\n",tempDHT22,humidite,(int)temp,anemometer.readWindSpeed());
         //humidite= dht22.ReadHumidity();
         //tempDHT22 = dht22.ReadTemperature(CELCIUS); 
        // pc.printf("tempDHT22=%3.1f /humidite= %3.1f \r\n",tempDHT22,humidite);                
