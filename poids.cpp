@@ -18,7 +18,7 @@ int main()
          wait_ms(200);                                                      
         valeurHx= Balance.getValue();   
         poids = ((double)valeurHx-(double)valeurHxTare)/11500;  // Conversion de la valeur de l'ADC en grammes
-        poids = (-1.0)*(poids/1.88); // ajuster en kg
+        poids = (-0.50)*(poids/0.875); // ajuster en kg
        
         pc.printf("weight is %4.2f \r\n",poids);
         
