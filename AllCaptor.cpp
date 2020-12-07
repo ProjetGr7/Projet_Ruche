@@ -2,11 +2,14 @@
 #include "DS1820.h"
 #include "DHT.h"
 #include "DavisAnemometer.h"
+#include "HX711.h"
 
 DS1820 ds1820(D2); // OK
 Serial pc(USBTX, USBRX); //  OK
 Serial sigfox(D1,D0); // pas OK
 static DavisAnemometer anemometer(A1 /* wind direction */, D6 /* wind speed */); // OK
+HX711 Balance(D4,D5);       // Déclaration de l'objet HX711
+
 DHT dht22(D3, DHT22); // pas OK
 
 int main(){
@@ -14,9 +17,13 @@ int main(){
     float temp = 0; //temperature de la sonde
     int resultat = 0;
     int erreur=0;
+    long valeur;
+    long valeurTare;
+    float poids;
     
     float humidite = 0, tempDHT22 = 0;
     anemometer.enable();
+    valeurTare = Balance.getValue();    
     pc.printf("\r\n--Commencer--\r\n");
     //sigfox.printf("ESSAI");
     while(1){
@@ -84,13 +91,20 @@ int main(){
             
                 printf("La direction est Nord-Est\r\n [speed] %.2f km/h\r\n",anemometer.readWindSpeed()); 
             }
+        
+        valeur = Balance.getValue();                                        // On récupère la valeur du module
+        poids = ((float)valeur-(float)valeurTare)/143200;         // Convertionde la valeur de l'ADC en grammes
+        pc.printf("Valeur : %ld          Poids : %.3lf\n",valeur,poids);    // Affichage du poids
+        
+        pc.printf("----------------------------\n");
             
-        sigfox.printf("AT$SF=%02x%02x%02x%02x\r\n",tempDHT22,humidite,(int)temp,anemometer.readWindSpeed());
+       sigfox.printf("AT$SF=%02x%02x%02x%02x%02x\r\n",(int)tempDHT22,(int)humidite,(int)temp,(int)anemometer.readWindSpeed(),(int) poids);
+
         //humidite= dht22.ReadHumidity();
         //tempDHT22 = dht22.ReadTemperature(CELCIUS); 
        // pc.printf("tempDHT22=%3.1f /humidite= %3.1f \r\n",tempDHT22,humidite);                
         
-        wait(2);
+        wait(10);
         
     }
     
