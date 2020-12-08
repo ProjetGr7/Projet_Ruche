@@ -30,6 +30,7 @@ int main(){
     long valeurTare;
     float poids;
     float vitesse;
+	int flag = 0x0;
     
     
     float humidite = 0, tempDHT22 = 0;
@@ -51,7 +52,7 @@ int main(){
        
         
         tempDHT22 = dht22.ReadTemperature(CELCIUS); // lire temperature par DHT22
-         temp_form=(int)((tempDHT22*10)-300);// température du DHT22 formalisée pour etre envoyée sur Sigfox
+        temp_form=(int)((tempDHT22*10)-300);// température du DHT22 formalisée pour etre envoyée sur Sigfox
         humidite= dht22.ReadHumidity(); // lire humidite par DHT22
         humid_form=(int) humidite;
         
@@ -122,8 +123,18 @@ int main(){
         
         pc.printf("----------------------------\r\n");
         
-        trame1=(trame1 & 0x0)|((temp_form)|(humid_form<<10)|(temp_sonde_form<<17);
-            
+        trame1=(trame1 & 0x0)| // trame a 0
+		(temp_form)| // 10bits de temperature DHT22
+		(humid_form<<10)| // humidite sur 7 bits
+		(temp_sonde_form<<17)| // temperature sonde sur 8 bits
+        (direction_form<<25)| // direction sur 3 bits
+		(flag<<28); // flag sur 3 bits
+		
+		trame2=(trame2 & 0x0)|
+		(poids_form);
+		
+		
+		
        //sigfox.printf("AT$SF=%02x%02x%02x%02x%02x\r\n",(int)tempDHT22,(int)humidite,(int)temp,(int)anemometer.readWindSpeed(),(int) poids);
 
         //humidite= dht22.ReadHumidity();
@@ -134,4 +145,3 @@ int main(){
         
     }
 }
-
