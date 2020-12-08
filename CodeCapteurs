@@ -136,13 +136,13 @@ int main(){
         
         
         
-       //sigfox.printf("AT$SF=%02x%02x%02x%02x%02x\r\n",(int)tempDHT22,(int)humidite,(int)temp,(int)anemometer.readWindSpeed(),(int) poids);
+       sigfox.printf("AT$SF=%02x%02x%02x%02x%02x\r\n",(int)tempDHT22,(int)humidite,(int)temp,(int)anemometer.readWindSpeed(),(int) poids);
 
         //humidite= dht22.ReadHumidity();
         //tempDHT22 = dht22.ReadTemperature(CELCIUS); 
        // pc.printf("tempDHT22=%3.1f /humidite= %3.1f \r\n",tempDHT22,humidite);                
         
-        wait(1);
+        wait(720);
         
     }
 }
