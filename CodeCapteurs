@@ -9,6 +9,7 @@ Serial pc(USBTX, USBRX); //  OK
 Serial sigfox(D1,D0); // pas OK
 static DavisAnemometer anemometer(A1 /* wind direction */,D4 /* wind speed */); // OK
 HX711 Balance(D5,D6);       // Déclaration de l'objet HX711
+AnalogIn batterie(A3);
 
 DHT dht22(D3, DHT22); // pas OK
 
@@ -31,7 +32,7 @@ int main(){
     long valeurTare;
     float poids;
     float vitesse;
-    
+    int charge; //de 0 à 100% (batterie va de 0 a 2.1V)
     
     float humidite = 0, tempDHT22 = 0;
     anemometer.enable();
@@ -58,7 +59,7 @@ int main(){
         
         switch (resultat) {
                   case 0:                 // pas d'erreur -> 'temp' comporte valeur de temperature
-                      pc.printf("tempSonde = %3.1f%cC ,tempDHT22: %f%cC , humidite: %f \r\n", temp, 176,tempDHT22,176,humidite);
+                      //pc.printf("tempSonde = %3.1f%cC ,tempDHT22: %f%cC , humidite: %f \r\n", temp, 176,tempDHT22,176,humidite);
                      //  pc.printf("tempSonde = %d%cC ,tempDHT22: %d%cC , humidite: %d \r\n", temp_sonde_form, 176,temp_form,176,humid_form);
                      // sigfox.printf("AT$SF=%02x%02x%02x\r\n",tempDHT22,humidite,(int)temp); //envoyer le message a backend sigfox
 
@@ -121,17 +122,22 @@ int main(){
        
         pc.printf("weight is %4.2f \r\n",poids);
         
+        
+        
+        //calcul du pourcentage de batterie
+        charge=(int)(batterie.read()*100/2.1); //tension max a 2.1
+        pc.printf("charge batterie: %d %c",charge,25);
         pc.printf("----------------------------\r\n");
         
          trame1=(trame1 & 0x0)| // trame a 0
-        ((int)tempDHT22)| // 10bits de temperature DHT22
-        ((int)humidite<<8)| // humidite sur 7 bits
+        ((int)tempDHT22)| // 8bits de temperature DHT22
+        ((int)humidite<<8)| // humidite sur 8 bits
         ((int)temp<<16)| // temperature sonde sur 8 bits
-        ((int)vitesse<<24); // direction sur 3 bits
+        ((int)vitesse<<24); // direction sur 8 bits
         //(flag<<28); // flag sur 3 bits
         
         trame2=(trame2 & 0x0)|
-        (direction<<16)|((int)poids<<24);
+        (direction<<16)|((int)poids<<24)|(charge<<8);
         
         
         
@@ -146,3 +152,4 @@ int main(){
         
     }
 }
+
