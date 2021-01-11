@@ -49,11 +49,11 @@ int main(){
         ds1820.startConversion();
         //wait(10);
         resultat = ds1820.read(temp);
-        temp_sonde_form=(int)((temp*10)-300); // température de la sonde formalisée pour etre envoyée sur Sigfox
+        temp_sonde_form=(int)((temp*10)+400); // température de la sonde formalisée pour etre envoyée sur Sigfox
        
         
         tempDHT22 = dht22.ReadTemperature(CELCIUS); // lire temperature par DHT22
-         temp_form=(int)((tempDHT22*10)-300);// température du DHT22 formalisée pour etre envoyée sur Sigfox
+         temp_form=(int)((tempDHT22*10)+400);// température du DHT22 formalisée pour etre envoyée sur Sigfox
         humidite= dht22.ReadHumidity(); // lire humidite par DHT22
         humid_form=(int) humidite;
         
@@ -72,7 +72,7 @@ int main(){
                   case 2:                 // erreur de CRC  -> 'temp' n'est pas mis a jour
                       pc.printf("erreur de CRC\r\n");
         }
-        pc.printf("tempSonde = %3.1f%cC ,tempDHT22: %f%cC , humidite: %f \r\n", temp, 176,tempDHT22,176,humidite);
+        pc.printf("tempSonde = %3.1f%cC ,tempDHT22: %3.1f%cC , humidite: %f \r\n tempSondeForm=%d, tempDHT22form=%d\n", temp, 176,tempDHT22,176,humidite,temp_sonde_form,temp_form);
         
         
         vitesse=anemometer.readWindSpeed();
@@ -116,8 +116,8 @@ int main(){
             }
         
         valeurHx= Balance.getValue();   
-        poids = ((double)valeurHx-(double)valeurTare)/11500;  // Conversion de la valeur de l'ADC en grammes
-        poids = (-0.50)*(poids/0.875)+0.02; // ajuster en kg
+        poids = 2*((double)valeurHx-(double)valeurTare)/11500;  // Conversion de la valeur de l'ADC en grammes
+        poids = 10*((-0.50)*(poids/0.875)+0.02)-350; // ajuster en kg
        //poids_form= (int)((poids*10));
        
         pc.printf("weight is %4.2f \r\n",poids);
@@ -130,19 +130,19 @@ int main(){
         pc.printf("----------------------------\r\n");
         
          trame1=(trame1 & 0x0)| // trame a 0
-        ((int)tempDHT22)| // 8bits de temperature DHT22
-        ((int)humidite<<8)| // humidite sur 8 bits
-        ((int)temp<<16)| // temperature sonde sur 8 bits
-        ((int)vitesse<<24); // direction sur 8 bits
-        //(flag<<28); // flag sur 3 bits
+        ((int)charge<<8)| // temperature 8 bits
+        ((int)humidite<<16)| // humidite sur 8 bits
+        ((int)vitesse<<24); //vitesse sur 8 bits
+
         
         trame2=(trame2 & 0x0)|
-        (direction<<16)|((int)poids<<24)|(charge<<8);
+        (direction<<8)|((int)poids<<16);//poids sur 16bits
         
+        trame3=(trame3 & 0x0)|(temp_sonde_form<<16)|(temp_form);//temperature sur 16bits
         
         
        //sigfox.printf("AT$SF=%02x%02x%02x%02x%02x\r\n",(int)tempDHT22,(int)humidite,(int)temp,(int)anemometer.readWindSpeed(),(int) poids);
-        sigfox.printf("AT$SF=%08x%08x\r\n",trame1,trame2);
+        sigfox.printf("AT$SF=%08x%08x%08x\r\n",trame1,trame2,trame3);
 
         //humidite= dht22.ReadHumidity();
         //tempDHT22 = dht22.ReadTemperature(CELCIUS); 
@@ -152,4 +152,3 @@ int main(){
         
     }
 }
-
