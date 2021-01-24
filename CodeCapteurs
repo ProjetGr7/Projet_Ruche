@@ -4,14 +4,14 @@
 #include "DavisAnemometer.h"
 #include "HX711.h"
 
-DS1820 ds1820(D2); // OK
-Serial pc(USBTX, USBRX); //  OK
-Serial sigfox(D1,D0); // pas OK
-static DavisAnemometer anemometer(A1 /* wind direction */,D4 /* wind speed */); // OK
-HX711 Balance(D5,D6);       // Déclaration de l'objet HX711
+DS1820 ds1820(D2); 
+Serial pc(USBTX, USBRX); 
+Serial sigfox(D1,D0); 
+static DavisAnemometer anemometer(A1 /* wind direction */,D4 /* wind speed */); 
+HX711 Balance(D5,D6);     
 AnalogIn batterie(A3);
 
-DHT dht22(D3, DHT22); // pas OK
+DHT dht22(D3, DHT22);
 
 int main(){
     
@@ -40,14 +40,14 @@ int main(){
     pc.printf("\r\n--Commencer--\r\n");
     
     while(1){
-        //ThisThread::sleep_for(2000);
+       
         erreur = dht22.readData(); 
             
         if(!(ds1820.begin() && erreur == 0)){
             pc.printf("ERREUR DS1820 ou DHT22\r\n");
         }
         ds1820.startConversion();
-        //wait(10);
+  
         resultat = ds1820.read(temp);
         temp_sonde_form=(int)((temp*10)+400); // température de la sonde formalisée pour etre envoyée sur Sigfox
        
